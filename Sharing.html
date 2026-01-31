@@ -1,0 +1,623 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Network Section (Particles + Custom Icons + Videos)</title>
+  <!-- Optional: icons for the close button (Font Awesome). You can remove and use plain "×" -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    :root{
+      --bg1:#050b16;
+      --bg2:#0a1b33;
+      --text:#eaf2ff;
+      --muted:rgba(234,242,255,.85);
+      --stroke:rgba(255,255,255,.16);
+      --ring:rgba(255,255,255,.25);
+      --glow:rgba(160,220,255,.9);
+    }
+    /* Section wrapper */
+    .network-section{
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      min-height: 560px;
+      overflow: hidden;
+      background: radial-gradient(1000px 600px at 55% 55%, rgba(130,190,255,.14), transparent 55%),
+                  radial-gradient(900px 500px at 35% 45%, rgba(255,255,255,.08), transparent 60%),
+                  linear-gradient(160deg, var(--bg1), var(--bg2));
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+    }
+    /* particles layer */
+    #particles-js{
+      position:absolute;
+      inset:0;
+      z-index: 0;
+    }
+    /* Content stage */
+    .net-stage{
+      position: relative;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+    /* SVG lines layer */
+    .net-lines{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      z-index: 1;
+      pointer-events:none;
+    }
+    /* Node container */
+    .net-nodes{
+      position:absolute;
+      inset:0;
+      z-index: 2;
+    }
+    /* Center hub */
+    .hub{
+      position:absolute;
+      left:50%;
+      top:50%;
+      transform: translate(-50%,-50%);
+      width: 190px;
+      height: 190px;
+      border-radius: 999px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.12), transparent 50%),
+                  radial-gradient(circle at 60% 65%, rgba(130,200,255,.18), transparent 55%),
+                  rgba(10, 43, 85, .85);
+      border: 1px solid var(--stroke);
+      box-shadow: 0 0 0 10px rgba(255,255,255,.06),
+                  0 0 40px rgba(120,200,255,.18);
+      backdrop-filter: blur(6px);
+    }
+    .hub::before{
+      content:"";
+      position:absolute;
+      inset:-18px;
+      border-radius:999px;
+      border: 1px solid var(--ring);
+      box-shadow: 0 0 35px rgba(160,220,255,.14);
+    }
+    .hub h2{
+      margin:0;
+      font-size: 30px;
+      line-height: 1.05;
+      letter-spacing: .2px;
+      text-shadow: 0 6px 18px rgba(0,0,0,.35);
+      user-select:none;
+    }
+    /* Outer nodes */
+    .node{
+      position:absolute;
+      width: 190px;
+      transform: translate(-50%,-50%);
+      text-align:center;
+      user-select:none;
+    }
+    .node .icon{
+      position: relative;
+      width: 58px;
+      height: 58px;
+      margin: 0 auto 10px;
+      border-radius: 16px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.16);
+      box-shadow: 0 10px 30px rgba(0,0,0,.25),
+                  0 0 25px rgba(160,220,255,.10);
+      backdrop-filter: blur(6px);
+      transition: transform .35s ease, box-shadow .35s ease, background .35s ease, border-color .35s ease;
+      cursor: pointer;
+    }
+    .custom-icon{
+      width: 32px;
+      height: 32px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 8px rgba(160,220,255,.35));
+      transition: transform .3s ease, filter .3s ease;
+      pointer-events:none;
+    }
+    .node .label{
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--muted);
+      text-shadow: 0 8px 18px rgba(0,0,0,.35);
+      line-height: 1.1;
+      letter-spacing: .2px;
+      pointer-events:none;
+    }
+    /* Hover */
+    .node:hover .icon{
+      transform: scale(1.12);
+      background: rgba(255,255,255,.15);
+      border-color: rgba(160,220,255,.6);
+      box-shadow: 0 0 25px rgba(160,220,255,.6),
+                  0 0 60px rgba(160,220,255,.25);
+    }
+    .node:hover .custom-icon{
+      transform: scale(1.15);
+      filter: drop-shadow(0 0 14px rgba(160,220,255,.9));
+    }
+    /* Click active */
+    .node.active .icon{
+      transform: scale(1.20);
+      background: rgba(160,220,255,.25);
+      border-color: rgba(160,220,255,1);
+      box-shadow: 0 0 35px rgba(160,220,255,1),
+                  0 0 90px rgba(160,220,255,.4);
+    }
+    .node.active .label{
+      color: #ffffff;
+      text-shadow: 0 0 15px rgba(160,220,255,.9);
+    }
+    .node.active .custom-icon{
+      transform: scale(1.20);
+      filter: drop-shadow(0 0 20px rgba(160,220,255,1));
+    }
+    /* Pulse ring on hover */
+    .node:hover .icon::after{
+      content:"";
+      position:absolute;
+      inset:-10px;
+      border-radius:20px;
+      border:1px solid rgba(160,220,255,.6);
+      animation: pulse 1.2s infinite;
+      pointer-events:none;
+    }
+    @keyframes pulse{
+      0%{
+        opacity:.9;
+        transform: scale(1);
+      }
+      100%{
+        opacity:0;
+        transform: scale(1.4);
+      }
+    }
+    /* Glow dot used for lines endpoints */
+    .glow-dot{
+      position:absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.95);
+      box-shadow: 0 0 10px rgba(160,220,255,.9),
+                  0 0 30px rgba(160,220,255,.25);
+      transform: translate(-50%,-50%);
+      z-index: 3;
+      pointer-events:none;
+      opacity:.9;
+    }
+    /* ===== VIDEO MODAL ===== */
+    .video-modal{
+      position:fixed;
+      inset:0;
+      z-index:9999;
+      display:none;
+    }
+    .video-modal.is-open{
+      display:block;
+    }
+    .video-backdrop{
+      position:absolute;
+      inset:0;
+      background: rgba(0,0,0,.62);
+      backdrop-filter: blur(6px);
+    }
+    .video-dialog{
+      position:absolute;
+      left:50%;
+      top:50%;
+      transform: translate(-50%,-50%);
+      width: min(980px, calc(100vw - 32px));
+      border-radius: 20px;
+      background: rgba(10, 20, 40, .85);
+      border: 1px solid rgba(255,255,255,.14);
+      box-shadow: 0 30px 80px rgba(0,0,0,.55);
+      padding: 14px;
+    }
+    .video-frame{
+      border-radius: 16px;
+      overflow:hidden;
+      background: rgba(0,0,0,.35);
+      border: 1px solid rgba(255,255,255,.10);
+    }
+    .video-frame video{
+      width:100%;
+      height:auto;
+      display:block;
+    }
+    .video-close{
+      position:absolute;
+      right: 10px;
+      top: 10px;
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.08);
+      color: #fff;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .video-close:hover{
+      background: rgba(255,255,255,.14);
+    }
+    .video-meta{
+      margin-top: 10px;
+      padding: 4px 6px;
+    }
+    .video-title{
+      font-weight: 700;
+      font-size: 16px;
+      color: rgba(255,255,255,.92);
+    }
+    @media (max-width: 900px){
+      .hub{
+        width: 160px;
+        height:160px;
+      }
+      .hub h2{
+        font-size: 26px;
+      }
+      .node{
+        width: 160px;
+      }
+      .node .label{
+        font-size: 16px;
+      }
+    }
+    @media (max-width: 520px){
+      .network-section{
+        min-height: 680px;
+      }
+      .hub{
+        width: 150px;
+        height:150px;
+      }
+      .hub h2{
+        font-size: 24px;
+      }
+      .node{
+        width: 150px;
+      }
+      .node .icon{
+        width: 54px;
+        height:54px;
+      }
+      .custom-icon{
+        width: 30px;
+        height:30px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <section class="network-section">
+    <div id="particles-js"></div>
+    <div class="net-stage" id="netStage">
+      <!-- SVG lines -->
+      <svg class="net-lines" id="netLines" preserveAspectRatio="none"></svg>
+      <!-- nodes -->
+      <div class="net-nodes" id="netNodes">
+        <div class="hub" id="hub">
+          <h2>My<br/>Sharing<br/>System</h2>
+        </div>
+        <!-- nodes injected by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Video Modal -->
+  <div class="video-modal" id="videoModal" aria-hidden="true">
+    <div class="video-backdrop" data-close></div>
+    <div class="video-dialog" role="dialog" aria-modal="true" aria-label="Video player">
+      <button class="video-close" type="button" aria-label="Close" data-close>
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div class="video-frame">
+        <video id="modalVideo" controls playsinline preload="metadata"></video>
+      </div>
+      <div class="video-meta">
+        <div class="video-title" id="videoTitle"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- particles.js -->
+  <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+  <script>
+    /* ========= 1) CONFIG (labels + custom icons + videos) ========= 
+       Put your icon files in /icons and videos in /videos (or use full URLs).
+    */
+    const ITEMS = [
+      { label: "Réception", icon: "icons/reception.svg", angle: 140, video: "videos/reception.mp4" },
+      { label: "Cuisine", icon: "icons/cuisine.svg", angle: 90, video: "videos/cuisine.mp4" },
+      { label: "Réservations", icon: "icons/reservation.svg", angle: 35, video: "videos/reservations.mp4" },
+      { label: "Housekeeping", icon: "icons/housekeeping.svg", angle: -5, video: "videos/housekeeping.mp4" },
+      { label: "Conciergerie", icon: "icons/concierge.svg", angle: -45, video: "videos/conciergerie.mp4" },
+      { label: "Room Service", icon: "icons/room-service.svg", angle: -90, video: "videos/room-service.mp4" },
+      { label: "Feedback Clients", icon: "icons/feedback.svg", angle:-125, video: "videos/feedback.mp4" },
+      { label: "Staff & Planning", icon: "icons/staff.svg", angle: 180, video: "videos/staff-planning.mp4" }
+    ];
+
+    /* ========= 2) BUILD NODES ========= */
+    const stage = document.getElementById("netStage");
+    const hubEl = document.getElementById("hub");
+    const nodesEl = document.getElementById("netNodes");
+    const svgEl = document.getElementById("netLines");
+
+    function makeNode(item, idx){
+      const node = document.createElement("div");
+      node.className = "node";
+      node.dataset.idx = String(idx);
+      node.innerHTML = `
+        <div class="icon" role="button" tabindex="0" aria-label="${item.label}">
+          <img src="${item.icon}" class="custom-icon" alt="${item.label}">
+        </div>
+        <div class="label">${item.label}</div>
+      `;
+      nodesEl.appendChild(node);
+
+      // glow dot (used as line endpoint) — always reliable even if images load late
+      const dot = document.createElement("div");
+      dot.className = "glow-dot";
+      dot.dataset.idx = String(idx);
+      nodesEl.appendChild(dot);
+
+      return { node, dot };
+    }
+
+    const rendered = ITEMS.map(makeNode);
+
+    /* ========= 3) SVG HELPERS ========= */
+    function clearSvg(){
+      while(svgEl.firstChild) svgEl.removeChild(svgEl.firstChild);
+    }
+
+    function ensureGlowFilter(){
+      const defs = document.createElementNS("http://www.w3.org/2000/svg","defs");
+      const filter = document.createElementNS("http://www.w3.org/2000/svg","filter");
+      filter.setAttribute("id","softGlow");
+      filter.innerHTML = `
+        <feGaussianBlur stdDeviation="1.6" result="blur"/>
+        <feMerge>
+          <feMergeNode in="blur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      `;
+      defs.appendChild(filter);
+      svgEl.appendChild(defs);
+    }
+
+    function svgLine(x1,y1,x2,y2, opts={}){
+      const ln = document.createElementNS("http://www.w3.org/2000/svg","line");
+      ln.setAttribute("x1", x1);
+      ln.setAttribute("y1", y1);
+      ln.setAttribute("x2", x2);
+      ln.setAttribute("y2", y2);
+      ln.setAttribute("stroke", opts.stroke || "rgba(255,255,255,.45)");
+      ln.setAttribute("stroke-width", opts.width || "1.2");
+      ln.setAttribute("stroke-linecap","round");
+      if (opts.dash) ln.setAttribute("stroke-dasharray", opts.dash);
+      return ln;
+    }
+
+    /* ========= 4) LAYOUT + DRAW (FIXED: 8 explicit SVG lines) ========= */
+    function layout(){
+      const stageRect = stage.getBoundingClientRect();
+      
+      // Make SVG coordinate system match pixels
+      svgEl.setAttribute("viewBox", `0 0 ${stageRect.width} ${stageRect.height}`);
+      svgEl.setAttribute("width", stageRect.width);
+      svgEl.setAttribute("height", stageRect.height);
+      
+      // Hub center in stage coords
+      const hubRect = hubEl.getBoundingClientRect();
+      const hubCenter = {
+        x: (hubRect.left + hubRect.width/2) - stageRect.left,
+        y: (hubRect.top + hubRect.height/2) - stageRect.top
+      };
+      
+      // Radius relative to stage
+      const baseR = Math.min(stageRect.width, stageRect.height) * 0.34;
+      
+      // Position nodes + dots in orbit
+      ITEMS.forEach((item, i) => {
+        const rad = (item.angle * Math.PI) / 180;
+        const nodeX = hubCenter.x + Math.cos(rad) * baseR;
+        const nodeY = hubCenter.y - Math.sin(rad) * baseR;
+        
+        rendered[i].node.style.left = nodeX + "px";
+        rendered[i].node.style.top = nodeY + "px";
+        
+        const dotX = hubCenter.x + Math.cos(rad) * (baseR * 0.78);
+        const dotY = hubCenter.y - Math.sin(rad) * (baseR * 0.78);
+        
+        rendered[i].dot.style.left = dotX + "px";
+        rendered[i].dot.style.top = dotY + "px";
+      });
+      
+      // Clear and redraw SVG
+      clearSvg();
+      ensureGlowFilter();
+      
+      // Get all dot positions first
+      const dotPositions = ITEMS.map((_, i) => {
+        const dotRect = rendered[i].dot.getBoundingClientRect();
+        return {
+          x: (dotRect.left + dotRect.width/2) - stageRect.left,
+          y: (dotRect.top + dotRect.height/2) - stageRect.top
+        };
+      });
+      
+      // Create 8 explicit lines from hub center to each dot
+      // Line 1: to Réception (angle 140)
+      const line1 = svgLine(hubCenter.x, hubCenter.y, dotPositions[0].x, dotPositions[0].y, {
+        stroke: "rgba(255,255,255,.50)", width: 1.3
+      });
+      line1.setAttribute("filter","url(#softGlow)");
+      svgEl.appendChild(line1);
+      
+      // Line 2: to Cuisine (angle 90)
+      const line2 = svgLine(hubCenter.x, hubCenter.y, dotPositions[1].x, dotPositions[1].y, {
+        stroke: "rgba(255,255,255,.50)", width: 1.3
+      });
+      line2.setAttribute("filter","url(#softGlow)");
+      svgEl.appendChild(line2);
+      
+      // Line 3: to Réservations (angle 35)
+      const line3 = svgLine(hubCenter.x, hubCenter.y, dotPositions[2].x, dotPositions[2].y, {
+        stroke: "rgba(255,255,255,.50)", width: 1.3
+      });
+      line3.setAttribute("filter","url(#softGlow)");
+      svgEl.appendChild(line3);
+      
+      // Line 4: to Housekeeping (angle -5)
+      const line4 = svgLine(hubCenter.x, hubCenter.y, dotPositions[3].x, dotPositions[3].y, {
+        stroke: "rgba(255,255,255,.50)", width: 1.3
+      });
+      line4.setAttribute("filter","url(#softGlow)");
+      svgEl.appendChild(line4);
+      
+      // Line 5: to Conciergerie (angle -45)
+      const line5 = svgLine(hubCenter.x, hubCenter.y, dotPositions[4].x, dotPositions[4].y, {
+        stroke: "rgba(255,255,255,.50)", width: 1.3
+      });
+      line5.setAttribute("filter","url(#softGlow)");
+      svgEl.appendChild(line5);
+      
+      // Line 6: to Room Service (angle -90)
+      const line6 = svgLine(hubCenter.x, hubCenter.y, dotPositions[5].x, dotPositions[5].y, {
+        stroke: "rgba(255,255,255,.50)", width: 1.3
+      });
+      line6.setAttribute("filter","url(#softGlow)");
+      svgEl.appendChild(line6);
+      
+      // Line 7: to Feedback Clients (angle -125)
+      const line7 = svgLine(hubCenter.x, hubCenter.y, dotPositions[6].x, dotPositions[6].y, {
+        stroke: "rgba(255,255,255,.50)", width: 1.3
+      });
+      line7.setAttribute("filter","url(#softGlow)");
+      svgEl.appendChild(line7);
+      
+      // Line 8: to Staff & Planning (angle 180)
+      const line8 = svgLine(hubCenter.x, hubCenter.y, dotPositions[7].x, dotPositions[7].y, {
+        stroke: "rgba(255,255,255,.50)", width: 1.3
+      });
+      line8.setAttribute("filter","url(#softGlow)");
+      svgEl.appendChild(line8);
+      
+      // Optional mesh ring (connect node-to-next)
+      for(let i=0;i<ITEMS.length;i++){
+        const a = dotPositions[i];
+        const b = dotPositions[(i+1)%ITEMS.length];
+        const mesh = svgLine(a.x, a.y, b.x, b.y, {
+          stroke:"rgba(255,255,255,.22)", 
+          width:1.0
+        });
+        svgEl.appendChild(mesh);
+      }
+    }
+
+    // Run layout reliably (initial + after paint + on resize)
+    window.addEventListener("load", () => {
+      layout();
+      requestAnimationFrame(layout); // second pass fixes late image layout
+    });
+
+    window.addEventListener("resize", () => {
+      clearTimeout(window.__netT);
+      window.__netT = setTimeout(() => {
+        layout();
+        requestAnimationFrame(layout);
+      }, 60);
+    });
+
+    /* ========= 5) PARTICLES BACKGROUND ========= */
+    particlesJS("particles-js", {
+      particles: {
+        number: { value: 70, density: { enable: true, value_area: 900 } },
+        color: { value: "#ffffff" },
+        shape: { type: "circle" },
+        opacity: { value: 0.35, random: true },
+        size: { value: 2.4, random: true },
+        line_linked: { enable: true, distance: 150, color: "#ffffff", opacity: 0.22, width: 1 },
+        move: { enable: true, speed: 1.2, direction: "none", random: false, straight: false, out_mode: "out" }
+      },
+      interactivity: {
+        detect_on: "canvas",
+        events: { onhover: { enable: true, mode: "repulse" }, onclick: { enable: false }, resize: true },
+        modes: { repulse: { distance: 120, duration: 0.25 } }
+      },
+      retina_detect: true
+    });
+
+    /* ========= 6) VIDEO MODAL (each icon has its video) ========= */
+    const videoModal = document.getElementById("videoModal");
+    const modalVideo = document.getElementById("modalVideo");
+    const videoTitle = document.getElementById("videoTitle");
+
+    function openVideoModal(src, title){
+      if(!src) return;
+      videoTitle.textContent = title || "Video";
+      modalVideo.pause();
+      modalVideo.removeAttribute("src");
+      modalVideo.load();
+      modalVideo.src = src;
+      modalVideo.load();
+      videoModal.classList.add("is-open");
+      videoModal.setAttribute("aria-hidden","false");
+      modalVideo.play().catch(()=>{});
+    }
+
+    function closeVideoModal(){
+      videoModal.classList.remove("is-open");
+      videoModal.setAttribute("aria-hidden","true");
+      modalVideo.pause();
+      modalVideo.removeAttribute("src");
+      modalVideo.load();
+    }
+
+    videoModal.addEventListener("click", (e) => {
+      if(e.target.matches("[data-close]")) closeVideoModal();
+    });
+
+    window.addEventListener("keydown", (e) => {
+      if(e.key === "Escape" && videoModal.classList.contains("is-open")) closeVideoModal();
+    });
+
+    /* ========= 7) CLICK / KEYBOARD on icon => active + open its video ========= */
+    rendered.forEach(({ node }, index) => {
+      const iconBtn = node.querySelector(".icon");
+      
+      function activate(){
+        document.querySelectorAll(".node").forEach(n => n.classList.remove("active"));
+        node.classList.add("active");
+        const item = ITEMS[index];
+        openVideoModal(item.video, item.label);
+      }
+      
+      iconBtn.addEventListener("click", activate);
+      iconBtn.addEventListener("keydown", (e) => {
+        if(e.key === "Enter" || e.key === " "){
+          e.preventDefault();
+          activate();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
